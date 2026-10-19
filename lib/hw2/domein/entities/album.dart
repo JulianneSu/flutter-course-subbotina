@@ -1,24 +1,43 @@
-class Album{
+class Album {
+  Album({
+    required this.id,
+    required this.name,
+    required this.band,
+    this.imageurl,
+    required this.genre,
+    required this.year,
+  });
 
- Album({
-  required this.id,
-  required this.name,
-  required this.band,
-  this.imageurl,
-  required this.genre,
-  required this.year});
+  final int id;
+  final String name;
+  final String band;
+   String? imageurl = 'assets/images/7.jpg';
+  final List<String> genre;
+  final String year;
 
-final int id;
-final String name;
-final String band;
-final String? imageurl;
-final List<String> genre;
-final String year;
+  factory Album.fromJson(Map<String, dynamic> json) {
+    return Album(
+      id: int.parse(json['id']),
+      name: json['name'],
+      year: json['year'],
+      band: json['band'],
+      imageurl: json['imageurl'],
+      genre: (json['genre'] as List<dynamic>)
+        .map((e) => e.toString())
+        .toList(),
+    );
+  }
 
-
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'year': year,
+      'band': band,
+      'genre': genre,
+      'imageurl': imageurl,
+    };
+  }
 }
-
-
 
 // List<Album> Albums = [
 //   Album(id: 1, name: 'Passion`s price', band: 'Diva Destruction', genre: ['pop','gothic rock'],imageurl: 'assets/images/7.jpg', year: '1999'),
@@ -29,5 +48,5 @@ final String year;
 //    Album(id: 6, name: 'Folkesange', band: 'Myrkir', genre: ['black metal','folk metal'],imageurl: 'assets/images/10.jpg', year: '2020'),
 //    Album(id: 7, name: 'Close', band: 'Messa', genre: ['doom metal'],imageurl: 'assets/images/11.webp', year: '2022'),
 //    Album(id: 8, name: 'Wolfheart', band: 'Moonspell', genre: ['gothic metal','doom metal'],imageurl: 'assets/images/12.jpg', year: '1995'),
-  
+
 // ];
