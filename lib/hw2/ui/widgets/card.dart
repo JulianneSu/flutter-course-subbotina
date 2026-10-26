@@ -41,6 +41,20 @@ class CardWidget extends StatelessWidget {
           children: [
             Stack(
               children: [
+                if (card.imageurl == null)
+                  Container(
+                 width: 160,
+                  height: 160,
+                  clipBehavior: Clip.antiAlias,
+                  decoration: BoxDecoration(
+                     color: const Color.fromARGB(255, 201, 201, 201),
+                     borderRadius: BorderRadius.circular(12),
+                  ),
+                  
+                  child: Image.asset('assets/images/placeholder.png', fit: BoxFit.cover),
+          
+                )
+              else 
                 Container(
                  width: 160,
                   height: 160,
@@ -49,6 +63,7 @@ class CardWidget extends StatelessWidget {
                      color: const Color.fromARGB(255, 201, 201, 201),
                      borderRadius: BorderRadius.circular(12),
                   ),
+                  
                   child: Image.asset('${card.imageurl}', fit: BoxFit.cover),
           
                 ),
