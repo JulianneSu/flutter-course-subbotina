@@ -30,7 +30,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final String url = 'https://6ad4be6948476c0785d939f0.mockapi.io/albums';
   bool isLoading = false;
   String? error;
-  
+
   bool albumCreated = true;
   //отправить данные на сервер
   Future<void> _createAlbum(Album album) async {
@@ -90,7 +90,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
-  
   bool likedOnly = false;
   final Set<String> likedAlbumsId = <String>{};
   List<Album> likedAlbums = [];
@@ -113,11 +112,16 @@ class _CatalogScreenState extends State<CatalogScreen> {
     });
   }
 
-  //import to firestore
   final db = FirebaseFirestore.instance;
   Future<void> createAlbum(Album al) async {
     try {
-      await db.collection('albums').add(al.toJson());
+      // await db.collection('albums').add(al.toJson());
+      final ref = db.collection('albums').doc();
+      await ref.set({
+        ...al.toJson(),
+        'id': ref.id,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
     } catch (e) {
       print(e);
     }
@@ -135,7 +139,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final _albumsStream = FirebaseFirestore.instance
       .collection('albums')
       .snapshots();
-
 
   @override
   Widget build(BuildContext context) {
@@ -241,96 +244,97 @@ class _CatalogScreenState extends State<CatalogScreen> {
                 ],
               ),
 
-            
-                if (!albumCreated)
-                  Row(
-                    spacing: 20,
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          decoration: InputDecoration(
-                            hintText: 'Название альбома',
-                            errorText: _nameError,
-                          ),
-                          controller: textController,
+              if (!albumCreated)
+                Row(
+                  spacing: 20,
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        decoration: InputDecoration(
+                          hintText: 'Название альбома',
+                          errorText: _nameError,
                         ),
+                        controller: textController,
                       ),
+                    ),
 
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                        ),
-                        onPressed: addAlbum,
-                        child: Text('Добавить'),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
                       ),
-                      InkWell(
-                        onTap: tapCloseCreate,
-                        child: CircleAvatar(
-                          backgroundColor: Colors.white,
-                          foregroundColor: Colors.black,
-                          maxRadius: 18,
-                          child: Icon(Icons.close),
-                        ),
+                      onPressed: addAlbum,
+                      child: Text('Добавить'),
+                    ),
+                    InkWell(
+                      onTap: tapCloseCreate,
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.black,
+                        maxRadius: 18,
+                        child: Icon(Icons.close),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
               Expanded(
-child: BlocBuilder<AlbumBloc, AlbumState>(builder: 
-(context, state) {
-if(state is AlbumLoadInProgress)
-{
-    return Center(
+                child: BlocBuilder<AlbumBloc, AlbumState>(
+                  builder: (context, state) {
+                    if (state is AlbumLoadInProgress) {
+                      return Center(
                         child: CircularProgressIndicator(color: Colors.red),
                       );
-}
-if (state is AlbumLoadFailure)
-{
-  return   Center(
+                    }
+                    if (state is AlbumLoadFailure) {
+                      return Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
                             Text(state.message),
                             ElevatedButton(
-                              onPressed: (){context.read<AlbumBloc>().add(AlbumLoadRequested());},
+                              onPressed: () {
+                                context.read<AlbumBloc>().add(
+                                  AlbumLoadRequested(),
+                                );
+                              },
                               child: const Text('Обновить'),
                             ),
                           ],
                         ),
                       );
-}
+                    }
 
-//                 child: StreamBuilder(
-//                   stream: _albumsStream,
-//                   key: ValueKey(
-//                     _streamKey,
-//                   ), // ← при изменении key поток перезапускается
-//                   builder: (context, snapshot) {
-//                     if (snapshot.connectionState == ConnectionState.waiting) {
-//                       return Center(
-//                         child: CircularProgressIndicator(color: Colors.red),
-//                       );
-//                     }
-//                     if (snapshot.hasError) {
-//                       return Center(
-//                         child: Column(
-//                           mainAxisSize: MainAxisSize.min,
-//                           spacing: 12,
-//                           children: [
-//                             Text('Ошибка загрузки: ${snapshot.error}'),
-//                             ElevatedButton(
-//                               onPressed: _refresh,
-//                               child: const Text('Обновить'),
-//                             ),
-//                           ],
-//                         ),
-//                       );
-//                     }
+                    //                 child: StreamBuilder(
+                    //                   stream: _albumsStream,
+                    //                   key: ValueKey(
+                    //                     _streamKey,
+                    //                   ), // ← при изменении key поток перезапускается
+                    //                   builder: (context, snapshot) {
+                    //                     if (snapshot.connectionState == ConnectionState.waiting) {
+                    //                       return Center(
+                    //                         child: CircularProgressIndicator(color: Colors.red),
+                    //                       );
+                    //                     }
+                    //                     if (snapshot.hasError) {
+                    //                       return Center(
+                    //                         child: Column(
+                    //                           mainAxisSize: MainAxisSize.min,
+                    //                           spacing: 12,
+                    //                           children: [
+                    //                             Text('Ошибка загрузки: ${snapshot.error}'),
+                    //                             ElevatedButton(
+                    //                               onPressed: _refresh,
+                    //                               child: const Text('Обновить'),
+                    //                             ),
+                    //                           ],
+                    //                         ),
+                    //                       );
+                    //                     }
 
-//                     if (!snapshot.hasData) {
-//                       return Center(child: Text('Данные не найдены :('));
-//                     }
+                    //                     if (!snapshot.hasData) {
+                    //                       return Center(child: Text('Данные не найдены :('));
+                    //                     }
 
                     final albums = (state as AlbumLoadSuccess).albums;
                     final visible = likedOnly
@@ -338,8 +342,9 @@ if (state is AlbumLoadFailure)
                               .where((a) => likedAlbumsId.contains(a.id))
                               .toList()
                         : albums;
-if(albums.isEmpty)     return Center(child: Text('Данные не найдены :('));
-                    if (visible.isEmpty) {                      
+                    if (albums.isEmpty)
+                      return Center(child: Text('Данные не найдены :('));
+                    if (visible.isEmpty) {
                       return const Center(
                         child: Text('Нет избранных альбомов'),
                       );
@@ -365,14 +370,10 @@ if(albums.isEmpty)     return Center(child: Text('Данные не найден
                         );
                       },
                     );
-                //   },
-                // ),
-
-}
-),
-
-
-              
+                    //   },
+                    // ),
+                  },
+                ),
               ),
             ],
           ),
@@ -381,3 +382,6 @@ if(albums.isEmpty)     return Center(child: Text('Данные не найден
     );
   }
 }
+
+// allow read, write:
+// if request.auth != null;
