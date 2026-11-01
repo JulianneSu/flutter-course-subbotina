@@ -5,3 +5,10 @@
 # Xcode-related
 **/dgph
 **/xcuserdata/
+
+# кэш Hosting
+.firebase/
+# логи CLI
+firebase-debug.log
+# ключи сервисного аккаунта
+*-firebase-adminsdk-*.json

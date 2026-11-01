@@ -1,9 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/hw2/bloc/album_bloc.dart';
+import 'package:flutter_application_1/hw2/bloc/album_state.dart';
 import 'package:flutter_application_1/hw2/domein/entities/album.dart';
 import 'package:flutter_application_1/hw2/ui/screens/login_screen.dart';
 import 'package:flutter_application_1/hw2/ui/widgets/card.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_application_1/hw2/bloc/album_bloc.dart';
+import 'package:flutter_application_1/hw2/bloc/album_state.dart';
+import 'package:flutter_application_1/hw2/bloc/album_event.dart';
+
 import 'package:http/http.dart' as http;
 
 import 'dart:convert';
@@ -23,46 +30,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
   final String url = 'https://6ad4be6948476c0785d939f0.mockapi.io/albums';
   bool isLoading = false;
   String? error;
-  // String? data;
-
-  //принять данные с сервера
-  Future<void> _load() async {
-    var response;
-    setState(() {
-      isLoading = true;
-      error = null;
-    });
-    try {
-      response = await http.get(Uri.parse(url));
-      if (response.statusCode != 200) {
-        print('Ошибка ${response.statusCode}');
-
-        throw Exception('Ошибка ${response.statusCode}');
-      }
-      final json = jsonDecode(response.body) as List;
-
-      // for (final i in json) {
-      //   final al = Album.fromJson(i);
-      //   Albums.add(al);
-
-      final parsed = json
-          .map((e) => Album.fromJson(e as Map<String, dynamic>))
-          .toList();
-
-      setState(() {
-        Albums = parsed;
-      });
-      // setState(() => Albums = json.map((e) => Album.fromJson(e)).toList());
-    } catch (e) {
-      setState(() => error = e.toString());
-      print(e.toString());
-    } finally {
-      setState(() => isLoading = false);
-    }
-
-    print(response);
-  }
-
+  
   bool albumCreated = true;
   //отправить данные на сервер
   Future<void> _createAlbum(Album album) async {
@@ -122,14 +90,7 @@ class _CatalogScreenState extends State<CatalogScreen> {
     super.dispose();
   }
 
-  // if (isLoading) {
-  //   return const CircularProgressIndicator();
-  // }
-  // if (error != null) {
-  //   return Text('error occured :(');
-
-  // }}
-
+  
   bool likedOnly = false;
   final Set<String> likedAlbumsId = <String>{};
   List<Album> likedAlbums = [];
@@ -175,19 +136,6 @@ class _CatalogScreenState extends State<CatalogScreen> {
       .collection('albums')
       .snapshots();
 
-  // Future<void> _importFromMockApi() async {
-  //   await load(); // ваш GET из ДЗ 4
-
-  //   final batch = db.batch();
-  //   for (final item in Albums) {
-  //     batch.set(db.collection('albums').doc(), {
-  //       ...item.toJson(),
-  //       'ownerId': FirebaseAuth.instance.currentUser!.uid,
-  //       'createdAt': FieldValue.serverTimestamp(),
-  //     });
-  //   }
-  //   await batch.commit();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -328,48 +276,70 @@ class _CatalogScreenState extends State<CatalogScreen> {
                     ],
                   ),
               Expanded(
-                child: StreamBuilder(
-                  stream: _albumsStream,
-                  key: ValueKey(
-                    _streamKey,
-                  ), // ← при изменении key поток перезапускается
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(
+child: BlocBuilder<AlbumBloc, AlbumState>(builder: 
+(context, state) {
+if(state is AlbumLoadInProgress)
+{
+    return Center(
                         child: CircularProgressIndicator(color: Colors.red),
                       );
-                    }
-                    if (snapshot.hasError) {
-                      return Center(
+}
+if (state is AlbumLoadFailure)
+{
+  return   Center(
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           spacing: 12,
                           children: [
-                            Text('Ошибка загрузки: ${snapshot.error}'),
+                            Text(state.message),
                             ElevatedButton(
-                              onPressed: _refresh,
+                              onPressed: (){context.read<AlbumBloc>().add(AlbumLoadRequested());},
                               child: const Text('Обновить'),
                             ),
                           ],
                         ),
                       );
-                    }
+}
 
-                    if (!snapshot.hasData) {
-                      return Center(child: Text('Данные не найдены :('));
-                    }
+//                 child: StreamBuilder(
+//                   stream: _albumsStream,
+//                   key: ValueKey(
+//                     _streamKey,
+//                   ), // ← при изменении key поток перезапускается
+//                   builder: (context, snapshot) {
+//                     if (snapshot.connectionState == ConnectionState.waiting) {
+//                       return Center(
+//                         child: CircularProgressIndicator(color: Colors.red),
+//                       );
+//                     }
+//                     if (snapshot.hasError) {
+//                       return Center(
+//                         child: Column(
+//                           mainAxisSize: MainAxisSize.min,
+//                           spacing: 12,
+//                           children: [
+//                             Text('Ошибка загрузки: ${snapshot.error}'),
+//                             ElevatedButton(
+//                               onPressed: _refresh,
+//                               child: const Text('Обновить'),
+//                             ),
+//                           ],
+//                         ),
+//                       );
+//                     }
 
-                    final albums = snapshot.data!.docs
-                        .map(Album.fromFirestore)
-                        .toList();
+//                     if (!snapshot.hasData) {
+//                       return Center(child: Text('Данные не найдены :('));
+//                     }
+
+                    final albums = (state as AlbumLoadSuccess).albums;
                     final visible = likedOnly
                         ? albums
                               .where((a) => likedAlbumsId.contains(a.id))
                               .toList()
                         : albums;
 if(albums.isEmpty)     return Center(child: Text('Данные не найдены :('));
-                    if (visible.isEmpty) { print(snapshot.hasData);
-                     
+                    if (visible.isEmpty) {                      
                       return const Center(
                         child: Text('Нет избранных альбомов'),
                       );
@@ -395,8 +365,14 @@ if(albums.isEmpty)     return Center(child: Text('Данные не найден
                         );
                       },
                     );
-                  },
-                ),
+                //   },
+                // ),
+
+}
+),
+
+
+              
               ),
             ],
           ),
