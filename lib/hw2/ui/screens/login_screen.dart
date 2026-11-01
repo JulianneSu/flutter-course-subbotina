@@ -126,11 +126,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     final cred = await FirebaseAuth.instance
                         .signInWithEmailAndPassword(
                           email: 
-                          // 'test@test.com',
-                          loginController.text,
+                          'test@test.com',
+                          // loginController.text,
                           password:
-                          //  '123456',
-                          passwordController.text,
+                           '123456',
+                          // passwordController.text,
                         );
                     if (FirebaseAuth.instance.currentUser != null) {
                       if (!mounted) return;
