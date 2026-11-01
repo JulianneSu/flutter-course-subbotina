@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Album {
   Album({
     required this.id,
@@ -8,23 +10,21 @@ class Album {
     required this.year,
   });
 
-  final int id;
+  final String id;
   final String name;
   final String band;
-   String? imageurl = 'assets/images/7.jpg';
+  String? imageurl = 'assets/images/7.jpg';
   final List<String> genre;
   final String year;
 
   factory Album.fromJson(Map<String, dynamic> json) {
     return Album(
-      id: int.parse(json['id']),
+      id: json['id'],
       name: json['name'],
       year: json['year'],
       band: json['band'],
       imageurl: json['imageurl'],
-      genre: (json['genre'] as List<dynamic>)
-        .map((e) => e.toString())
-        .toList(),
+      genre: (json['genre'] as List<dynamic>).map((e) => e.toString()).toList(),
     );
   }
 
@@ -37,8 +37,21 @@ class Album {
       'imageurl': imageurl,
     };
   }
-}
 
+  factory Album.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+    final data = doc.data()!;
+    return Album(
+      id: doc.id,
+      name: (data['name'] as String?) ?? '',
+      band: (data['band'] as String?) ?? '',
+      year: (data['year'] as String?) ?? '',
+      imageurl: data['imageurl'] as String?,
+      genre: (data['genre'] as List<dynamic>? ?? [])
+          .map((e) => e.toString())
+          .toList(),
+    );
+  }
+}
 // List<Album> Albums = [
 //   Album(id: 1, name: 'Passion`s price', band: 'Diva Destruction', genre: ['pop','gothic rock'],imageurl: 'assets/images/7.jpg', year: '1999'),
 //   Album(id: 2, name: 'Secret of the runes', band: 'Therion', genre: ['symphonic metal',],imageurl: 'assets/images/4.jpg', year: '2001'),

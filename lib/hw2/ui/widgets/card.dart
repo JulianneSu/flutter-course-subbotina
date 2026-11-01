@@ -103,25 +103,28 @@ class CardWidget extends StatelessWidget {
             spacing: 10,
             children: [
               Text(card.band, style: TextStyle(
-                fontSize: 24,
+                fontSize: 20,
                 fontWeight: FontWeight(900),
               )),
               Text('${card.name} • ${card.year}', style: TextStyle(
-                fontSize: 19,
+                fontSize: 16,
                 color: Colors.grey,)),
-                Row(
-  children: card.genre.map((g) => Padding(
-    padding: const EdgeInsets.only(right: 6),
+                Wrap(
+                 spacing: 10,
+                 runSpacing: 10,
+  children: card.genre.map((g) => Container(
+    // padding: const EdgeInsets.only(right: 6),
     child: Container(
       padding: const EdgeInsets.fromLTRB(10, 6, 10, 6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
         color: const Color.fromARGB(255, 255, 198, 198),
       ),
-      child: Text(g, style: const TextStyle(fontSize: 15, color: Color.fromARGB(255, 94, 30, 30))),
+      child: Text(g, style: const TextStyle(fontSize: 12, color: Color.fromARGB(255, 94, 30, 30))),
     ),
-  )).toList(),
-)
+  )).toList(),)
+  
+
             ],
           ))
           
